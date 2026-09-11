@@ -9,7 +9,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 
 
-# 1. Load dataset
+# 1. Load the original dataset
 data = pd.read_csv("Titanic-Dataset - Titanic-Dataset.csv")
 
 print("Original dataset:")
@@ -22,12 +22,23 @@ data = data.drop(
 )
 
 
-# 3. Separate input and output
+# 3. Clean missing values
+data["Age"] = data["Age"].fillna(data["Age"].median())
+data["Embarked"] = data["Embarked"].fillna(data["Embarked"].mode()[0])
+
+
+# 4. Save the cleaned dataset
+data.to_csv("Cleaned_Titanic.csv", index=False)
+
+print("\nCleaned dataset saved as Cleaned_Titanic.csv")
+
+
+# 5. Separate input and output
 X = data.drop("Survived", axis=1)
 y = data["Survived"]
 
 
-# 4. Select numerical and categorical columns
+# 6. Select numerical and categorical columns
 numerical_columns = [
     "Pclass",
     "Age",
@@ -42,34 +53,34 @@ categorical_columns = [
 ]
 
 
-# 5. Clean numerical data
+# 7. Prepare numerical data
 numerical_pipeline = Pipeline([
     ("imputer", SimpleImputer(strategy="median"))
 ])
 
 
-# 6. Clean categorical data
+# 8. Prepare categorical data
 categorical_pipeline = Pipeline([
     ("imputer", SimpleImputer(strategy="most_frequent")),
     ("encoder", OneHotEncoder(handle_unknown="ignore"))
 ])
 
 
-# 7. Combine preprocessing
+# 9. Combine preprocessing
 preprocessor = ColumnTransformer([
     ("numerical", numerical_pipeline, numerical_columns),
     ("categorical", categorical_pipeline, categorical_columns)
 ])
 
 
-# 8. Create machine learning model
+# 10. Create model
 model = Pipeline([
     ("preprocessor", preprocessor),
     ("classifier", LogisticRegression(max_iter=1000))
 ])
 
 
-# 9. Split dataset into training and testing data
+# 11. Split data
 X_train, X_test, y_train, y_test = train_test_split(
     X,
     y,
@@ -79,19 +90,19 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 
-# 10. Train the model
+# 12. Train model
 model.fit(X_train, y_train)
 
 
-# 11. Test the model
+# 13. Test model
 y_pred = model.predict(X_test)
 
 accuracy = accuracy_score(y_test, y_pred)
 
-print("\nModel Accuracy:", accuracy)
+print("Model Accuracy:", accuracy)
 
 
-# 12. Predict a new passenger
+# 14. Predict a new passenger
 new_passenger = pd.DataFrame([{
     "Pclass": 1,
     "Gender": "female",
@@ -102,8 +113,8 @@ new_passenger = pd.DataFrame([{
     "Embarked": "C"
 }])
 
-
 prediction = model.predict(new_passenger)
+
 
 if prediction[0] == 1:
     print("Prediction: Passenger survived")
